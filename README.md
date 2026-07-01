@@ -28,6 +28,8 @@ product-service/
 ```
 
 - [Product Service Load Testing with k6](loadTestingWithK6.md)
+- [Why Caffeine Breaks with Autoscaling](whyCaffeineBreaksWithAutoscaling.md)
+- [The Fix — Redis as Distributed Cache](TheFix_RedisasDistributedCache.md)
 ---
 
 ## 🚀 Build & Run
