@@ -2,7 +2,7 @@
 
 ## 📋 Table of Contents
 - [Overview](#overview)
- - [k6 Logs](#k6-logs)
+- [k6 Logs](#k6-logs)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Test Structure](#test-structure)
@@ -12,6 +12,7 @@
 - [Performance Analysis](#performance-analysis)
 - [Optimization Recommendations](#optimization-recommendations)
 - [Troubleshooting](#troubleshooting)
+- [Summary](#summary)
 - [Next Steps](#next-steps)
 
 ---
@@ -339,27 +340,30 @@ thresholds: {
 text
 
 Response Times:
- Average: 10.52ms     ← Excellent!
- Median:  3.03ms      ← 50% of requests under 3ms!
- p(95):   37.91ms     ← 95% under 38ms
- p(99):   196.64ms    ← 99% under 197ms
- Max:     499.99ms    ← Individual slow requests
+| Metric | Value | Interpretation | Status |
+|---|---:|---|---|
+| **Average Response Time** | **10.52ms** | Overall average request processing time is very low, indicating excellent performance. | ✅ **Excellent** |
+| **Median Response Time (p50)** | **3.03ms** | 50% of requests completed within 3 milliseconds. | ✅ **Very Good** |
+| **p(95) Response Time** | **37.91ms** | 95% of requests completed within 38 milliseconds. | ✅ **Excellent** |
+| **p(99) Response Time** | **196.64ms** | 99% of requests completed within 197 milliseconds. | ✅ **Acceptable** |
+| **Maximum Response Time** | **499.99ms** | Some individual requests experienced higher latency spikes. | ⚠️ **Monitor Slow Requests** |
+
 
 #### ❌ Error Metrics (NEEDS IMPROVEMENT)
 
-text
-
-Error Rate:  20.76%    ← Exceeds 5% threshold
-429 Errors:  4,396     ← Rate limiter active
-Dropped:     731       ← Requests never processed
+| Metric | Value | Threshold / Expected | Status |  
+|---|---:|---|---|  
+| **Error Rate** | **20.76%** | Should be **< 5%** | 🔴 **Exceeded threshold** |  
+| **429 Errors** | **4,396** | Should appear only when rate limit is reached | ⚠️ **Rate limiter active** |  
+| **Dropped Requests** | **731** | Should be **0** under normal load | 🔴 **Requests not processed** |
 
 #### 📈 Traffic Analysis
 
-text
-
-Total Requests:     21,168 (141.1 req/s)
-Checks Successful:  16,891 (100% validation)
-Data Transferred:   33 MB received, 2.4 MB sent
+| Metric | Value | Description |  
+|---|---|---|  
+| **Total Requests** | **21,168** (**141.1 req/s**) | Total number of requests processed during the load test with an average throughput of 141.1 requests per second. |  
+| **Checks Successful** | **16,891** (**100% validation**) | All executed validation checks passed successfully, confirming expected API behavior. |  
+| **Data Transferred** | **33 MB received**<br>**2.4 MB sent** | Total network data exchanged between the load test client and the service. |
 
 ### Test Timeline Observations
 ## Load Test Execution Timeline
@@ -395,19 +399,14 @@ Meaning: System can handle ~150 QPS, but starts rejecting at ~200 QPS
 
 ### Performance Profile
 
-text
+| QPS | Response Time | Error Rate | Status |
+|---|---|---|---|
+| **50** | ~3ms | 0% | ✅ **Perfect** |
+| **150** | ~5ms | 0-1% | ✅ **Good** |
+| **200** | ~10ms | 5-10% | ⚠️ **Rate Limiting** |
+| **300** | ~15-197ms | 20-25% | ❌ **Overloaded** |
+| **50** | ~3ms | Decreased to 0% | ✅ **Recovered** |
 
-┌─────────────────────────────────────────────────────────────┐
-│  t3.micro Product Service Performance Profile              │
-├─────────────────────────────────────────────────────────────┤
-│  QPS     │ Response Time │ Error Rate │ Status            │
-│──────────┼───────────────┼────────────┼───────────────────│
-│  50      │ ~3ms          │ 0%         │ ✅ Perfect        │
-│  150     │ ~5ms          │ 0-1%       │ ✅ Good           │
-│  200     │ ~10ms         │ 5-10%      │ ⚠️ Rate Limiting  │
-│  300     │ ~15-197ms     │ 20-25%     │ ❌ Overloaded     │
-│  50      │ ~3ms          │ ↓ to 0%    │ ✅ Recovered      │
-└─────────────────────────────────────────────────────────────┘
 
 ### What the 731 Dropped Iterations Mean
 
@@ -722,6 +721,30 @@ Get-Counter "\Memory\Available MBytes"
 # Linux
 top -p <PID>
 vmstat 1
+
+---
+
+## Summary
+
+## Option 1: Technical Summary
+
+The overload test on t3.micro showed excellent response times (p95: 38ms, p99: 197ms) 
+but exceeded the 5% error threshold at 20.76% when QPS hit 200, confirming our 
+sustainable capacity limit is ~150 QPS with rate limiter protection working effectively.
+
+## Option 2: Action-Oriented
+
+Load testing confirmed our t3.micro can handle 150 QPS reliably, but at 200+ QPS 
+the error rate spikes to 20.76% due to rate limiting. Recommendation: either scale 
+to t3.small for 200+ QPS or optimize JVM/Xmx to 512m to improve capacity by ~20%.
+
+## Option 3: Business-Focused
+
+Performance testing validated the t3.micro instance handles 150 QPS with <1% errors 
+and sub-40ms response times. The 20.76% error rate at 200 QPS indicates we need either 
+auto-scaling above 150 QPS or an upgrade to t3.small for peak traffic handling.
+
+**Quick Pick:** Option 1 is best for technical teams, Option 2 for DevOps/Architects, Option 3 for Management/Stakeholders.
 
 ----------
 
