@@ -56,6 +56,57 @@ k6 wants to send 300 req/s
 → VUs pile up waiting for previous iteration to finish
 → k6 runs out of free VUs → drops 731 iterations
 → Server never sees them — these are NOT Tomcat or H2 failures
+
+
+k6 Client (Your Windows Machine)
+         │
+         │ Attempts to send 300 req/s
+         │
+         ▼
+┌─────────────────────┐
+│   k6 VU Pool        │  ← 🔴 EXHAUSTED!
+│   (Virtual Users)   │     Can't create more workers
+│                     │     Dropped Iterations: 731
+└─────────────────────┘
+         │
+         │ Only ~150-200 req/s actually sent
+         │
+         ▼
+┌─────────────────────┐
+│  Product Service    │  ← Server NEVER saw 731 requests!
+│  (t3.micro)         │     They died in k6, not the server
+└─────────────────────┘
+
+
+dropped_iterations: 731  ← k6 couldn't even CREATE the requests!
+http_reqs: 21,168       ← Only these reached the server
+
+**The Server NEVER saw the dropped requests!** They were rejected before leaving k6.
+
+
+┌─────────────────────────────────────────────────────────────────┐
+│                    300 QPS INCOMING                             │
+└────────────────┬────────────────────────────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────────────────────────────┐
+│           RESILIENCE4J RATE LIMITER (150/s cap)                │
+│                                                                 │
+│  ┌─────────────┐          ┌─────────────────────┐              │
+│  │ 150 req/s   │  ✅ PASS │  To Application     │              │
+│  │ (50% of QPS)│ ────────▶│  (Happy Path)       │              │
+│  └─────────────┘          └─────────────────────┘              │
+│                                                                 │
+│  ┌─────────────┐          ┌─────────────────────┐              │
+│  │ 150 req/s   │  ❌ REJECT│  HTTP 429 Response │              │
+│  │ (50% of QPS)│ ────────▶│  (Rate Limited)     │              │
+│  └─────────────┘          └─────────────────────┘              │
+└─────────────────────────────────────────────────────────────────┘
+                 │
+                 │ 20.76% Error Rate = 4,396 429s
+                 ▼   
+        rate limiter  rejects 50%!
+
 ```
 
 The fix if you want to actually send 300 req/s is increasing `maxVUs` in k6, or using `open model` (ramping-arrival-rate). But on localhost it doesn't matter much.
