@@ -27,9 +27,9 @@ product-service/
 └── pom.xml
 ```
 
-- [Product Service Load Testing with k6](loadTestingWithK6.md)
-- [Why Caffeine Breaks with Autoscaling](whyCaffeineBreaksWithAutoscaling.md)
-- [The Fix — Redis as Distributed Cache](TheFix_RedisasDistributedCache.md)
+- [Product Service Load Testing with k6](docs/loadTestingWithK6.md)
+- [Why Caffeine Breaks with Autoscaling](docs/whyCaffeineBreaksWithAutoscaling.md)
+- [The Fix — Redis as Distributed Cache](docs/TheFix_RedisasDistributedCache.md)
 ---
 
 ## 🚀 Build & Run
