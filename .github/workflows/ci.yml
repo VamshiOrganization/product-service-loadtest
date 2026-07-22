@@ -1,0 +1,18 @@
+name: CI/CD Pipeline
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+  release:
+    types: [created]
+
+# GRANT PERMISSIONS HERE
+permissions:
+  contents: read
+  packages: write  # Allows the called workflow to publish to GitHub Packages
+
+jobs:
+  call-shared-workflow:
+    uses: VamshiOrganization/github-actions/.github/workflows/reusable-maven-docker.yml@main
+    secrets: inherit
