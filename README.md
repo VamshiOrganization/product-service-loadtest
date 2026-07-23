@@ -26,7 +26,7 @@ product-service/
 ├── product-service.service (systemd unit)
 └── pom.xml
 ```
-
+- [Request and Response](docs/reqAndResp.md)
 - [Product Service Load Testing with k6](docs/loadTestingWithK6.md)
 - [dropped iterations](docs/dropped_iterations.md)
 - [Why Caffeine Breaks with Autoscaling](docs/whyCaffeineBreaksWithAutoscaling.md)
